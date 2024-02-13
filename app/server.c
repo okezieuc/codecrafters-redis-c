@@ -87,7 +87,7 @@ int main()
 	while (client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len))
 	{
 		printf("Client connected\n");
-		pthread_create(&t_ids[current_thread++], NULL, &handle_req, (void *)&client_fd);
+		pthread_create(&t_ids[current_thread++], NULL, handle_req, (void *)&client_fd);
 	}
 
 	close(server_fd);
