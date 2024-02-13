@@ -54,11 +54,11 @@ int main()
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 
+	client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
+	printf("Client connected\n");
+
 	while (1)
 	{
-		client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-		printf("Client connected\n");
-
 		// receive messge from client
 		recv(client_fd, req_buffer, 1023, 0);
 
