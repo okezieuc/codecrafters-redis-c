@@ -64,12 +64,10 @@ int main()
 
 		// respond to the client
 		strcpy(res_buffer, "+PONG\r\n");
-
 		send(client_fd, res_buffer, 7, 0);
-
-		close(client_fd);
 	}
 
+	close(client_fd);
 	close(server_fd);
 
 	return 0;
