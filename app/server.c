@@ -12,9 +12,8 @@ int main()
 	// Disable output buffering
 	setbuf(stdout, NULL);
 
-	// Uncomment this block to pass the first stage
-
 	int server_fd, client_fd, client_addr_len;
+	char req_buffer[1024], res_buffer[1024];
 	struct sockaddr_in client_addr;
 
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -60,7 +59,13 @@ int main()
 		client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
 		printf("Client connected\n");
 
-		send(client_fd, "+PONG\r\n", 7, 0);
+		// receive messge from client
+		recv(client_fd, req_buffer, 1023, 0);
+
+		// respond to the client
+		strcpy(res_buffer, "+PONG\r\n");
+
+		send(client_fd, res_buffer, 7, 0);
 
 		close(client_fd);
 	}
