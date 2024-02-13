@@ -22,7 +22,7 @@ void *handle_req(void *arg)
 	while (1)
 	{
 		// receive messge from client
-		recv((int)client_fd, req_buffer, 1023, 0);
+		recv(client_fd, req_buffer, 1023, 0);
 
 		// respond to the client
 		strcpy(res_buffer, "+PONG\r\n");
@@ -84,7 +84,7 @@ int main()
 	pthread_t t_ids[1024];
 
 	// create a new thread for every client
-	while (client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len))
+	while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len)) != -1)
 	{
 		printf("Client connected\n");
 		pthread_create(&t_ids[current_thread++], NULL, handle_req, (void *)&client_fd);
