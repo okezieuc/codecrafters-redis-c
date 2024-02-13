@@ -6,6 +6,33 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pthread.h>
+
+void *handle_req(void *);
+
+void *handle_req(void *arg)
+{
+	pthread_detach(pthread_self());
+
+	// store a copy of the client_fd in this context
+	int client_fd = *(int *)arg;
+	char req_buffer[1024], res_buffer[1024];
+
+	// handle multiple requests from single client
+	while (1)
+	{
+		// receive messge from client
+		recv((int)client_fd, req_buffer, 1023, 0);
+
+		// respond to the client
+		strcpy(res_buffer, "+PONG\r\n");
+		send(client_fd, res_buffer, 7, 0);
+	}
+
+	close(client_fd);
+
+	pthread_exit(NULL);
+}
 
 int main()
 {
@@ -13,7 +40,6 @@ int main()
 	setbuf(stdout, NULL);
 
 	int server_fd, client_fd, client_addr_len;
-	char req_buffer[1024], res_buffer[1024];
 	struct sockaddr_in client_addr;
 
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,20 +80,16 @@ int main()
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 
-	client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-	printf("Client connected\n");
+	int current_thread = 0;
+	pthread_t t_ids[1024];
 
-	while (1)
+	// create a new thread for every client
+	while (client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len))
 	{
-		// receive messge from client
-		recv(client_fd, req_buffer, 1023, 0);
-
-		// respond to the client
-		strcpy(res_buffer, "+PONG\r\n");
-		send(client_fd, res_buffer, 7, 0);
+		printf("Client connected\n");
+		pthread_create(t_ids[current_thread++], NULL, &handle_req, (void *)&client_fd);
 	}
 
-	close(client_fd);
 	close(server_fd);
 
 	return 0;
