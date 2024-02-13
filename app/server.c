@@ -15,16 +15,32 @@ void *handle_req(void *arg)
 	pthread_detach(pthread_self());
 
 	// store a copy of the client_fd in this context
-	int client_fd = *(int *)arg;
-	char req_buffer[1024], res_buffer[1024];
+	int len, client_fd = *(int *)arg;
+	char req_buffer[1024], res_buffer[1024], *ptr;
 
 	// receive messge from client
 	// handle multiple requests from single client
 	while (recv(client_fd, req_buffer, 1023, 0))
 	{
+		// parse the request
+
+		// we only handle the ECHO command, so we assume
+		// the number of items in the request array is 2
+
+		// we also assume that the received command is ECHO
+		// point to the start of the request text
+		ptr = req_buffer + 15;
+		len = strstr(ptr, "\r\n") - ptr;
+		strcpy(ptr + len, "\0");
+		ptr = ptr + len + 2;
+		len = atoi(len); // this is now length of message
+
 		// respond to the client
-		strcpy(res_buffer, "+PONG\r\n");
-		send(client_fd, res_buffer, 7, 0);
+		strcpy(res_buffer, "$");
+		strlcat(res_buffer, ptr, len);
+		strcat(res_buffer, "\r\n");
+
+		send(client_fd, res_buffer, 3 + len, 0);
 	}
 
 	close(client_fd);
