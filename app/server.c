@@ -12,18 +12,16 @@ void *handle_req(void *);
 
 void *handle_req(void *arg)
 {
-	// pthread_detach(pthread_self());
+	pthread_detach(pthread_self());
 
 	// store a copy of the client_fd in this context
 	int client_fd = *(int *)arg;
 	char req_buffer[1024], res_buffer[1024];
 
+	// receive messge from client
 	// handle multiple requests from single client
-	while (1)
+	while (recv(client_fd, req_buffer, 1023, 0))
 	{
-		// receive messge from client
-		recv(client_fd, req_buffer, 1023, 0);
-
 		// respond to the client
 		strcpy(res_buffer, "+PONG\r\n");
 		send(client_fd, res_buffer, 7, 0);
@@ -31,7 +29,7 @@ void *handle_req(void *arg)
 
 	close(client_fd);
 
-	// pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 int main()
@@ -89,6 +87,8 @@ int main()
 		printf("Client connected\n");
 		pthread_create(&t_ids[current_thread++], NULL, handle_req, (void *)&client_fd);
 	}
+
+	printf("server stopped");
 
 	close(server_fd);
 
