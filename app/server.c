@@ -14,7 +14,7 @@ int main()
 
 	// Uncomment this block to pass the first stage
 	
-	int server_fd, client_addr_len;
+	int server_fd, client_fd, client_addr_len;
 	struct sockaddr_in client_addr;
 	
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -50,8 +50,10 @@ int main()
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 	
-	accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
+	client_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
 	printf("Client connected\n");
+
+	send(client_fd, "+PONG\r\n", 7, 0);
 	
 	close(server_fd);
 
