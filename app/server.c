@@ -12,7 +12,7 @@ void *handle_req(void *);
 
 void *handle_req(void *arg)
 {
-	pthread_detach(pthread_self());
+	// pthread_detach(pthread_self());
 
 	// store a copy of the client_fd in this context
 	int client_fd = *(int *)arg;
@@ -31,7 +31,7 @@ void *handle_req(void *arg)
 
 	close(client_fd);
 
-	pthread_exit(NULL);
+	// pthread_exit(NULL);
 }
 
 int main()
