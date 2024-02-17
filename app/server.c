@@ -57,44 +57,32 @@ void *handle_req(void *arg)
 				{
 					strcpy(res_buffer, "+PONG\r\n");
 					send(client_fd, res_buffer, 7, 0);
-				}
 
-				// we don't expect to have any other thing in an array after the
-				// ping command
+					// we don't expect to have any other thing in an array after the
+					// ping command. so we do nothing here
+
+				} // handle echo commands
+				else if (strncmp(ptr, "echo", len) == 0)
+				{
+					// move our pointer to the start of the data to echo
+					// which most likely would be a dollar sign
+					ptr += len + 2;
+
+					// handle bulk strings
+					if (*ptr == "$")
+					{
+						int message_len = parse_number(ptr + 1, 1);
+						ptr += 3;
+
+						// ptr now points to the first character of our message
+						strcpy(res_buffer, "$");
+						strlcat(res_buffer, ptr, message_len);
+						strcat(res_buffer, "\r\n");
+						send(client_fd, res_buffer, 3 + len, 0);
+					}
+				}
 			}
 		}
-
-		// we only handle the ECHO command, so we assume
-		// the number of items in the request array is 2
-
-		// we also assume that the received command is ECHO
-		// point to the start of the request text
-
-		printf("DEBUG: %s\n", ptr);
-
-		ptr = req_buffer + 15;
-
-		printf("DEBUG: %s\n", ptr);
-
-		len = strstr(ptr, "\r\n") - ptr;
-		strcpy(ptr + len, "\0");
-		ptr = ptr + len + 2;
-
-		printf("DEBUG: %s\n", len);
-		printf("DEBUG: %s\n", ptr);
-
-		len = atoi((char *)len); // this is now length of message
-
-		printf("DEBUG: %s\n", len);
-
-		// respond to the client
-		strcpy(res_buffer, "$");
-		strlcat(res_buffer, ptr, len);
-		strcat(res_buffer, "\r\n");
-
-		printf("DEBUG: %s\n", res_buffer);
-
-		send(client_fd, res_buffer, 3 + len, 0);
 	}
 
 	close(client_fd);
