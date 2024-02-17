@@ -32,8 +32,11 @@ void *handle_req(void *arg)
 		// handle array requests
 		if (*req_buffer == '*')
 		{
+			
 			ptr = req_buffer + 1; // we use a copy of our pointer, as it gets modified
-			int count = parse_number(ptr = (ptr + 1), 1);
+			int count = parse_number(ptr, 1);
+			char tmp_str[20]; // temporary string storage. 20 characters long.
+			
 
 			// ptr now points to the last character in the array item count
 			// we assume we have at least one item in our array
@@ -55,6 +58,8 @@ void *handle_req(void *arg)
 				// handle ping commands
 				if (strncmp(ptr, "ping", len) == 0)
 				{
+					printf("STATUS: Received PING\n");
+
 					strcpy(res_buffer, "+PONG\r\n");
 					send(client_fd, res_buffer, 7, 0);
 
@@ -64,6 +69,8 @@ void *handle_req(void *arg)
 				} // handle echo commands
 				else if (strncmp(ptr, "echo", len) == 0)
 				{
+					printf("STATUS: Received ECHO\n");
+
 					// move our pointer to the start of the data to echo
 					// which most likely would be a dollar sign
 					ptr += len + 2;
@@ -73,12 +80,18 @@ void *handle_req(void *arg)
 					{
 						int message_len = parse_number(ptr = (ptr + 1), 1);
 						ptr += 3;
-
 						// ptr now points to the first character of our message
 						strcpy(res_buffer, "$");
-						strlcat(res_buffer, ptr, message_len);
+
+						// get the length of the returned character and append to response
+						sprintf(tmp_str, "%d", message_len);
+						strcat(res_buffer, tmp_str);
+
 						strcat(res_buffer, "\r\n");
-						send(client_fd, res_buffer, 3 + len, 0);
+						strncat(res_buffer, ptr, message_len);
+						strcat(res_buffer, "\r\n");
+						send(client_fd, res_buffer, 3 + message_len, 0);
+						printf("STATUS: Sent a response\n");
 					}
 				}
 			}
