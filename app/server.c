@@ -41,7 +41,7 @@ void *handle_req(void *arg)
 			ptr += 3;
 
 			// handle bulk-formatted commands
-			if (*ptr == "$")
+			if (*ptr == '$')
 			{
 				int len = parse_number(ptr + 1, 1);
 				ptr += 3;
@@ -69,7 +69,7 @@ void *handle_req(void *arg)
 					ptr += len + 2;
 
 					// handle bulk strings
-					if (*ptr == "$")
+					if (*ptr == '$')
 					{
 						int message_len = parse_number(ptr + 1, 1);
 						ptr += 3;
