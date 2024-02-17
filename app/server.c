@@ -32,11 +32,10 @@ void *handle_req(void *arg)
 		// handle array requests
 		if (*req_buffer == '*')
 		{
-			
+
 			ptr = req_buffer + 1; // we use a copy of our pointer, as it gets modified
 			int count = parse_number(ptr, 1);
 			char tmp_str[20]; // temporary string storage. 20 characters long.
-			
 
 			// ptr now points to the last character in the array item count
 			// we assume we have at least one item in our array
@@ -90,7 +89,7 @@ void *handle_req(void *arg)
 						strcat(res_buffer, "\r\n");
 						strncat(res_buffer, ptr, message_len);
 						strcat(res_buffer, "\r\n");
-						send(client_fd, res_buffer, 3 + message_len, 0);
+						send(client_fd, res_buffer, strlen(res_buffer), 0);
 						printf("STATUS: Sent a response\n");
 					}
 				}
