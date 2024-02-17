@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <ctype.h>
+#include "utils.h"
 
 void *handle_req(void *);
 
@@ -23,6 +25,44 @@ void *handle_req(void *arg)
 	while (recv(client_fd, req_buffer, 1023, 0))
 	{
 		// parse the request
+
+		// check the first character of the request to understand
+		// the structure of the request
+
+		// handle array requests
+		if (*req_buffer == '*')
+		{
+			ptr = req_buffer; // we use a copy of our pointer, as it gets modified
+			int count = parse_number(ptr + 1, 1);
+
+			// ptr now points to the last character in the array item count
+			// we assume we have at least one item in our array
+			// point ptr at the first character after our terminator
+			ptr += 3;
+
+			// handle bulk-formatted commands
+			if (*ptr == "$")
+			{
+				int len = parse_number(ptr + 1, 1);
+				ptr += 3;
+
+				// convert the command to lowercase
+				for (int i = 0; i < len; i++)
+				{
+					*(ptr + i) = tolower(*(ptr + i));
+				}
+
+				// handle ping commands
+				if (strncmp(ptr, "ping", len) == 0)
+				{
+					strcpy(res_buffer, "+PONG\r\n");
+					send(client_fd, res_buffer, 7, 0);
+				}
+
+				// we don't expect to have any other thing in an array after the
+				// ping command
+			}
+		}
 
 		// we only handle the ECHO command, so we assume
 		// the number of items in the request array is 2
