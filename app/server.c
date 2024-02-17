@@ -32,8 +32,8 @@ void *handle_req(void *arg)
 		// handle array requests
 		if (*req_buffer == '*')
 		{
-			ptr = req_buffer; // we use a copy of our pointer, as it gets modified
-			int count = parse_number(ptr + 1, 1);
+			ptr = req_buffer + 1; // we use a copy of our pointer, as it gets modified
+			int count = parse_number(ptr = (ptr + 1), 1);
 
 			// ptr now points to the last character in the array item count
 			// we assume we have at least one item in our array
@@ -43,7 +43,7 @@ void *handle_req(void *arg)
 			// handle bulk-formatted commands
 			if (*ptr == '$')
 			{
-				int len = parse_number(ptr + 1, 1);
+				int len = parse_number(ptr = (ptr + 1), 1);
 				ptr += 3;
 
 				// convert the command to lowercase
@@ -71,7 +71,7 @@ void *handle_req(void *arg)
 					// handle bulk strings
 					if (*ptr == '$')
 					{
-						int message_len = parse_number(ptr + 1, 1);
+						int message_len = parse_number(ptr = (ptr + 1), 1);
 						ptr += 3;
 
 						// ptr now points to the first character of our message
