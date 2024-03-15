@@ -1,7 +1,7 @@
 #ifndef RESP_SIMPLE_STRING_H
 #define RESP_SIMPLE_STRING_H
 
-#include "../resp.h"
+#include "generic_node.h"
 #include <stdlib.h>
 #include <string.h>
 
