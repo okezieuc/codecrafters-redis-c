@@ -44,4 +44,18 @@ struct RESPNode *parse_resp_node(char **resp_string)
     }
 }
 
+int free_resp_node(struct RESPNode *node)
+{
+    switch (node->metadata.type)
+    {
+    case '*':
+        return free_resp_array_node((struct RESPArrayNode *)node);
+        break;
+    default:
+        free(node);
+    }
+
+    return 1;
+}
+
 #endif

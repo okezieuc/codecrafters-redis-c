@@ -93,4 +93,16 @@ struct RESPArrayNode *create_resp_array_node(int length)
     return node;
 }
 
+int free_resp_array_node(struct RESPArrayNode *node)
+{
+    // free the memory associated with all items in the array
+    for (int i =0 ; i<node->length; i++) {
+        free_resp_node(node->item_ptrs[i]);
+    }
+
+    free(node);
+
+    return 1;
+}
+
 #endif

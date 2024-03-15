@@ -24,5 +24,6 @@ struct RESPNode
 
 struct RESPNode *parse_resp_node(char **);
 char *encode_resp_node(struct RESPNode *);
+int free_resp_node(struct RESPNode *);
 
 #endif
