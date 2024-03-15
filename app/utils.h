@@ -25,7 +25,7 @@
  *
  * Sample usage:
  * char digits[9] = "*24\r\n..."
- * int num = parse_number(digits + 1); // returns 24
+ * int num = parse_number(&(digits + 1), 1); // returns 24
  */
 int parse_number(char **digit_ptr, int adjust_pointer)
 {

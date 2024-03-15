@@ -17,9 +17,12 @@ char *encode_resp_node(struct RESPNode *node)
     }
 }
 
-struct RESPNode *parse_resp_node(char *resp_string)
+/**
+ * This function accepts a pointer to a pointer to the start of the RESP string.
+*/
+struct RESPNode *parse_resp_node(char **resp_string)
 {
-    switch (resp_string[0])
+    switch (*resp_string[0])
     {
     case '+':
         return (struct RESPNode *)parse_resp_simple_string(resp_string);
