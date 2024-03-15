@@ -63,4 +63,15 @@ char *encode_resp_bulk_string(struct RESPBulkStringNode *node)
     return encoding_ptr;
 }
 
+struct RESPBulkStringNode *create_resp_bulk_string_node(char *str)
+{
+    struct RESPBulkStringNode *node = malloc(sizeof(struct RESPBulkStringNode));
+
+    node->metadata.type = '$';
+    node->length = strlen(str);
+    strcpy(node->data, str);
+
+    return node;
+}
+
 #endif

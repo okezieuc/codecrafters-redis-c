@@ -83,4 +83,14 @@ char *encode_resp_array(struct RESPArrayNode *node)
     return encoding_ptr;
 }
 
+struct RESPArrayNode *create_resp_array_node(int length)
+{
+    struct RESPArrayNode *node = (struct RESPArrayNode *)malloc(sizeof(struct RESPArrayNode) + sizeof(struct RESPNode *) * length);
+
+    node->metadata.type = '*';
+    node->length = length;
+
+    return node;
+}
+
 #endif

@@ -57,4 +57,19 @@ char *encode_resp_simple_string(struct RESPSimpleStringNode *node)
     return encoding_ptr;
 }
 
+/**
+ * This function accepts a pointer to a string and returns an RESPSimpleStringNode containing
+ * the passed string. This function is vulnerable to buffer overflow exploits. This can be resolved
+ * by copying at most 1023 characters.
+ */
+struct RESPSimpleStringNode *create_resp_simple_string_node(char *data)
+{
+    struct RESPSimpleStringNode *node = malloc(sizeof(struct RESPSimpleStringNode));
+
+    node->metadata.type = '+';
+    strcpy(node->data, data);
+
+    return node;
+}
+
 #endif
