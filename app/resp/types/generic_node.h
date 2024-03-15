@@ -22,5 +22,7 @@ struct RESPNode
     struct RESPNodeMetadata metadata;
 };
 
+struct RESPNode *parse_resp_node(char **);
+char *encode_resp_node(struct RESPNode *);
 
 #endif

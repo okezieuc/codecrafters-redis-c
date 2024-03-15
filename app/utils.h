@@ -1,3 +1,6 @@
+#ifndef CC_REDIS_UTILS
+#define CC_REDIS_UTILS
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -52,3 +55,5 @@ int parse_number(char **digit_ptr, int adjust_pointer)
 
     return num;
 }
+
+#endif
