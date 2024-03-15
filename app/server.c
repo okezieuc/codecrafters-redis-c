@@ -34,7 +34,7 @@ void *handle_req(void *arg)
 		{
 
 			ptr = req_buffer + 1; // we use a copy of our pointer, as it gets modified
-			int count = parse_number(ptr, 1);
+			int count = parse_number(&ptr, 1);
 			char tmp_str[20]; // temporary string storage. 20 characters long.
 
 			// ptr now points to the last character in the array item count
@@ -45,7 +45,8 @@ void *handle_req(void *arg)
 			// handle bulk-formatted commands
 			if (*ptr == '$')
 			{
-				int len = parse_number(ptr = (ptr + 1), 1);
+				ptr = ptr + 1;
+				int len = parse_number(&ptr, 1);
 				ptr += 3;
 
 				// convert the command to lowercase
@@ -77,7 +78,8 @@ void *handle_req(void *arg)
 					// handle bulk strings
 					if (*ptr == '$')
 					{
-						int message_len = parse_number(ptr = (ptr + 1), 1);
+						ptr = (ptr + 1);
+						int message_len = parse_number(&ptr, 1);
 						ptr += 3;
 						// ptr now points to the first character of our message
 						strcpy(res_buffer, "$");
