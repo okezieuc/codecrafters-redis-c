@@ -26,7 +26,7 @@ struct RESPSimpleStringNode *parse_resp_simple_string(char *parser_iter_ptr)
 
     // allocate memory
     node = (struct RESPSimpleStringNode *)malloc(sizeof(struct RESPSimpleStringNode));
-    node->metadata.type = '-';
+    node->metadata.type = '+';
 
     // find the null terminator
     ptr = strstr(parser_iter_ptr, "\r\n");
