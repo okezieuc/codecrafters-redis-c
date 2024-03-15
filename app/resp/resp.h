@@ -2,6 +2,7 @@
 #define RESP_PARSER_H
 
 #include "types/generic_node.h"
+#include "types/bulk_string.h"
 #include "types/simple_string.h"
 
 // this RESP parser accepts an RESP-formatted request string
@@ -13,6 +14,9 @@ char *encode_resp_node(struct RESPNode *node)
     {
     case '+':
         return encode_resp_simple_string((struct RESPSimpleStringNode *)node);
+        break;
+    case '$':
+        return encode_resp_bulk_string((struct RESPBulkStringNode *)node);
         break;
     }
 }
@@ -26,6 +30,9 @@ struct RESPNode *parse_resp_node(char **resp_string)
     {
     case '+':
         return (struct RESPNode *)parse_resp_simple_string(resp_string);
+        break;
+    case '$':
+        return (struct RESPNode *)parse_resp_bulk_string(resp_string);
         break;
     }
 }
