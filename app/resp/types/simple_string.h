@@ -6,7 +6,7 @@
 #include <string.h>
 
 /**
- * Stores strings of up to 1024 characters.
+ * Stores strings of up to 1023 characters.
  */
 struct RESPSimpleStringNode
 {
@@ -33,13 +33,27 @@ struct RESPSimpleStringNode *parse_resp_simple_string(char *parser_iter_ptr)
 
     // we proceed, assuming ptr is not NULL, to copy the string to the allocated memory.
     // this is vulnerable to buffer overflow exploits.
-    // a fix for this is to copy the smaller of 1024 and len(string) bytes
+    // a fix for this is to copy the smaller of 1023 and len(string) bytes
     // + 1 and -1 accomodate the plus in the RESP string
     strncpy(node->data, parser_iter_ptr + 1, (ptr - parser_iter_ptr - 1));
+    node->data[(ptr - parser_iter_ptr - 1)] = '\0';
 
     parser_iter_ptr = ptr + 2;
-
     return node;
+}
+
+char *encode_resp_simple_string(struct RESPSimpleStringNode *node) {
+    char *encoding_ptr;
+    int len;
+
+    len = strlen(node->data);
+    encoding_ptr = (char *) malloc(len + 3);
+
+    strcpy(encoding_ptr, "+");
+    strcat(encoding_ptr, node->data);
+    strcat(encoding_ptr, "\r\n");
+
+    return encoding_ptr;
 }
 
 #endif
