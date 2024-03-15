@@ -10,7 +10,7 @@
  */
 struct RESPNodeMetadata
 {
-    char type[1];
+    char type;
 };
 
 /**
