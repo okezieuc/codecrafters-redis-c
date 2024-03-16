@@ -86,6 +86,18 @@ void *handle_req(void *arg)
 			free(res_body);
 		}
 
+		else if (strcmp(command->data, "get") == 0)
+		{
+			printf("STATUS: Received GET\n");
+
+			struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(get_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data));
+			char *res_body = encode_resp_bulk_string(res_data);
+			send(client_fd, res_body, strlen(res_body), 0);
+
+			free(res_data);
+			free(res_body);
+		}
+
 		free_resp_array_node(resp_request);
 	}
 
