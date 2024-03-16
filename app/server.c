@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <ctype.h>
 #include "utils.h"
+#include "resp/resp.h"
 
 void *handle_req(void *);
 
@@ -25,12 +26,35 @@ void *handle_req(void *arg)
 	while (recv(client_fd, req_buffer, 1023, 0))
 	{
 		// parse the request
+		ptr = (char *)&req_buffer;
 
-		// check the first character of the request to understand
-		// the structure of the request
+		struct RESPArrayNode *resp_request = parse_resp_array(&ptr);
+
+		// assuming all requests are sent as RESP arrays
+		// and assuming the command is sent as a bulk string
+		struct RESPBulkStringNode *command = (struct RESPBulkStringNode *)resp_request->item_ptrs[0];
+
+		// convert the command to lowercase
+		for (int i = 0; i < command->length; i++)
+		{
+			*(command->data + i) = tolower(*(command->data + i));
+		}
+
+		// handle ping commands
+		if (strcmp(command->data, "ping") == 0)
+		{
+			printf("STATUS: Received PING\n");
+
+			struct RESPSimpleStringNode *res_resp = create_resp_simple_string_node("PONG");
+			char *res_ptr = encode_resp_node((struct RESPNode *)res_resp);
+			send(client_fd, res_ptr, strlen(res_ptr), 0);
+
+			free_resp_node((struct RESPNode *)res_resp);
+			free(res_ptr);
+		}
 
 		// handle array requests
-		if (*req_buffer == '*')
+		else if (*req_buffer == '*')
 		{
 
 			ptr = req_buffer + 1; // we use a copy of our pointer, as it gets modified
@@ -55,19 +79,30 @@ void *handle_req(void *arg)
 					*(ptr + i) = tolower(*(ptr + i));
 				}
 
+				/*
+
 				// handle ping commands
 				if (strncmp(ptr, "ping", len) == 0)
 				{
 					printf("STATUS: Received PING\n");
 
+					struct RESPSimpleStringNode resp_res;
+					resp_res.metadata.type = '+';
+					strcpy(resp_res.data, "PONG");
+					char *res_ptr = encode_resp_node((struct RESPNode *)&resp_res);
+
 					strcpy(res_buffer, "+PONG\r\n");
-					send(client_fd, res_buffer, 7, 0);
+					send(client_fd, res_ptr, strlen(res_ptr), 0);
 
 					// we don't expect to have any other thing in an array after the
 					// ping command. so we do nothing here
 
 				} // handle echo commands
-				else if (strncmp(ptr, "echo", len) == 0)
+				else
+
+				*/
+
+				if (strncmp(ptr, "echo", len) == 0)
 				{
 					printf("STATUS: Received ECHO\n");
 
