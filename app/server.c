@@ -10,6 +10,13 @@
 #include <ctype.h>
 #include "utils.h"
 #include "resp/resp.h"
+#include "dict.h"
+
+struct ConnArgs
+{
+	int client_fd;
+	struct Dict *store;
+};
 
 void *handle_req(void *);
 
@@ -18,7 +25,8 @@ void *handle_req(void *arg)
 	pthread_detach(pthread_self());
 
 	// store a copy of the client_fd in this context
-	int len, client_fd = *(int *)arg;
+	int len, client_fd = (int)(((struct ConnArgs *)arg)->client_fd);
+	struct Dict *store = (struct Dict *)(((struct ConnArgs *)arg)->store);
 	char req_buffer[1024], res_buffer[1024], *ptr;
 
 	// receive messge from client
@@ -62,6 +70,19 @@ void *handle_req(void *arg)
 			send(client_fd, res_body, strlen(res_body), 0);
 
 			free_resp_node((struct RESPNode *)res_data);
+			free(res_body);
+		}
+
+		else if (strcmp(command->data, "set") == 0)
+		{
+			printf("STATUS: Received SET\n");
+			set_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data, ((struct RESPBulkStringNode *)resp_request->item_ptrs[2])->data);
+
+			struct RESPSimpleStringNode *res_data = create_resp_simple_string_node("OK");
+			char *res_body = encode_resp_simple_string(res_data);
+			send(client_fd, res_body, strlen(res_body), 0);
+
+			free(res_data);
 			free(res_body);
 		}
 
@@ -116,6 +137,9 @@ int main()
 		return 1;
 	}
 
+	// create data store
+	struct Dict *store = create_dict();
+
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 
@@ -126,7 +150,8 @@ int main()
 	while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len)) != -1)
 	{
 		printf("Client connected\n");
-		pthread_create(&t_ids[current_thread++], NULL, handle_req, (void *)&client_fd);
+		struct ConnArgs args = {client_fd, store};
+		pthread_create(&t_ids[current_thread++], NULL, handle_req, (void *)&args);
 	}
 
 	printf("server stopped");
