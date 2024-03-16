@@ -21,7 +21,7 @@ struct ConnArgs
 struct RedisEntry
 {
 	char value[512];
-	unsigned long int expiry_time;
+	long int expiry_time;
 };
 
 void *handle_req(void *);
@@ -87,6 +87,25 @@ void *handle_req(void *arg)
 			strcpy(new_entry.value, ((struct RESPBulkStringNode *)resp_request->item_ptrs[2])->data);
 			new_entry.expiry_time = 0;
 
+			// if the received command contains up to four items, we should expect to have an expiry
+			if (resp_request->length >= 4)
+			{
+				// check if the third command argument is px
+				struct RESPBulkStringNode *arg3 = (struct RESPBulkStringNode *)resp_request->item_ptrs[3];
+
+				for (int i = 0; i < arg3->length; i++)
+				{
+					*(arg3->data + i) = tolower(*(arg3->data + i));
+				}
+
+				if (strcmp(arg3->data, "px") == 0)
+				{
+					struct RESPBulkStringNode *arg4 = (struct RESPBulkStringNode *)resp_request->item_ptrs[4];
+					int ttl = atoi(arg4->data);
+					new_entry.expiry_time = get_current_time() + ttl;
+				}
+			}
+
 			set_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data, &new_entry);
 
 			struct RESPSimpleStringNode *res_data = create_resp_simple_string_node("OK");
@@ -102,12 +121,24 @@ void *handle_req(void *arg)
 			printf("STATUS: Received GET\n");
 
 			struct RedisEntry *saved_entry = get_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
-			struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(saved_entry->value);
+			char *res_body;
+			long int now = get_current_time();
 
-			char *res_body = encode_resp_bulk_string(res_data);
+			// check if the entry is expired
+			if ((saved_entry->expiry_time != 0) && ((now - saved_entry->expiry_time) > 0))
+			{
+				// the key is expired
+				del_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
+				res_body = encode_resp_bulk_string(NULL);
+			}
+			else
+			{
+				struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(saved_entry->value);
+				res_body = encode_resp_bulk_string(res_data);
+				free(res_data);
+			}
+
 			send(client_fd, res_body, strlen(res_body), 0);
-
-			free(res_data);
 			free(res_body);
 		}
 

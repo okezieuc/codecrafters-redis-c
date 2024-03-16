@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 /**
  * parse_number receives a pointer to the start of a chain of
@@ -54,6 +55,20 @@ int parse_number(char **digit_ptr, int adjust_pointer)
     }
 
     return num;
+}
+
+/**
+ * Returns the current time in milliseconds.
+ */
+long int get_current_time()
+{
+    struct timespec now;
+    long int time_in_ms;
+
+    clock_gettime(CLOCK_REALTIME, &now);
+    time_in_ms = now.tv_sec * 1000 + (now.tv_nsec) / 1000000;
+
+    return time_in_ms;
 }
 
 #endif

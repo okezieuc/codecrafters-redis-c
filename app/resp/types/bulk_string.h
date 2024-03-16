@@ -48,6 +48,13 @@ char *encode_resp_bulk_string(struct RESPBulkStringNode *node)
     char *encoding_ptr;
     int len;
 
+    // encode NULL bulk strings
+    if(node == NULL) {
+        encoding_ptr = malloc(6);
+        strcpy(encoding_ptr, "$-1\r\n");
+        return encoding_ptr;
+    }
+
     len = strlen(node->data);
     // 4 here represents the log of the maximum length of stored bytes + 1. since
     // we store at most 1023 bytes, this is at most 4. change this if the size of
