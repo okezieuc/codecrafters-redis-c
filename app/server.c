@@ -150,7 +150,7 @@ int main()
 	}
 
 	// create data store
-	struct Dict *store = create_dict();
+	struct Dict *store = create_dict(256);
 
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
