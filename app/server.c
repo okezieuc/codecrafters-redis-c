@@ -18,6 +18,12 @@ struct ConnArgs
 	struct Dict *store;
 };
 
+struct RedisEntry
+{
+	char value[512];
+	unsigned long int expiry_time;
+};
+
 void *handle_req(void *);
 
 void *handle_req(void *arg)
@@ -76,7 +82,12 @@ void *handle_req(void *arg)
 		else if (strcmp(command->data, "set") == 0)
 		{
 			printf("STATUS: Received SET\n");
-			set_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data, ((struct RESPBulkStringNode *)resp_request->item_ptrs[2])->data);
+
+			struct RedisEntry new_entry;
+			strcpy(new_entry.value, ((struct RESPBulkStringNode *)resp_request->item_ptrs[2])->data);
+			new_entry.expiry_time = 0;
+
+			set_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data, &new_entry);
 
 			struct RESPSimpleStringNode *res_data = create_resp_simple_string_node("OK");
 			char *res_body = encode_resp_simple_string(res_data);
@@ -90,7 +101,9 @@ void *handle_req(void *arg)
 		{
 			printf("STATUS: Received GET\n");
 
-			struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(get_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data));
+			struct RedisEntry *saved_entry = get_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
+			struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(saved_entry->value);
+
 			char *res_body = encode_resp_bulk_string(res_data);
 			send(client_fd, res_body, strlen(res_body), 0);
 
@@ -150,7 +163,7 @@ int main()
 	}
 
 	// create data store
-	struct Dict *store = create_dict(256);
+	struct Dict *store = create_dict(sizeof(struct RedisEntry));
 
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
