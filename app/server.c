@@ -45,93 +45,27 @@ void *handle_req(void *arg)
 		{
 			printf("STATUS: Received PING\n");
 
-			struct RESPSimpleStringNode *res_resp = create_resp_simple_string_node("PONG");
-			char *res_ptr = encode_resp_node((struct RESPNode *)res_resp);
-			send(client_fd, res_ptr, strlen(res_ptr), 0);
+			struct RESPSimpleStringNode *res_data = create_resp_simple_string_node("PONG");
+			char *res_body = encode_resp_node((struct RESPNode *)res_data);
+			send(client_fd, res_body, strlen(res_body), 0);
 
-			free_resp_node((struct RESPNode *)res_resp);
-			free(res_ptr);
+			free_resp_node((struct RESPNode *)res_data);
+			free(res_body);
 		}
 
-		// handle array requests
-		else if (*req_buffer == '*')
+		else if (strcmp(command->data, "echo") == 0)
 		{
+			printf("STATUS: Received PING\n");
 
-			ptr = req_buffer + 1; // we use a copy of our pointer, as it gets modified
-			int count = parse_number(&ptr, 1);
-			char tmp_str[20]; // temporary string storage. 20 characters long.
+			struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
+			char *res_body = encode_resp_node((struct RESPNode *)res_data);
+			send(client_fd, res_body, strlen(res_body), 0);
 
-			// ptr now points to the last character in the array item count
-			// we assume we have at least one item in our array
-			// point ptr at the first character after our terminator
-			ptr += 3;
-
-			// handle bulk-formatted commands
-			if (*ptr == '$')
-			{
-				ptr = ptr + 1;
-				int len = parse_number(&ptr, 1);
-				ptr += 3;
-
-				// convert the command to lowercase
-				for (int i = 0; i < len; i++)
-				{
-					*(ptr + i) = tolower(*(ptr + i));
-				}
-
-				/*
-
-				// handle ping commands
-				if (strncmp(ptr, "ping", len) == 0)
-				{
-					printf("STATUS: Received PING\n");
-
-					struct RESPSimpleStringNode resp_res;
-					resp_res.metadata.type = '+';
-					strcpy(resp_res.data, "PONG");
-					char *res_ptr = encode_resp_node((struct RESPNode *)&resp_res);
-
-					strcpy(res_buffer, "+PONG\r\n");
-					send(client_fd, res_ptr, strlen(res_ptr), 0);
-
-					// we don't expect to have any other thing in an array after the
-					// ping command. so we do nothing here
-
-				} // handle echo commands
-				else
-
-				*/
-
-				if (strncmp(ptr, "echo", len) == 0)
-				{
-					printf("STATUS: Received ECHO\n");
-
-					// move our pointer to the start of the data to echo
-					// which most likely would be a dollar sign
-					ptr += len + 2;
-
-					// handle bulk strings
-					if (*ptr == '$')
-					{
-						ptr = (ptr + 1);
-						int message_len = parse_number(&ptr, 1);
-						ptr += 3;
-						// ptr now points to the first character of our message
-						strcpy(res_buffer, "$");
-
-						// get the length of the returned character and append to response
-						sprintf(tmp_str, "%d", message_len);
-						strcat(res_buffer, tmp_str);
-
-						strcat(res_buffer, "\r\n");
-						strncat(res_buffer, ptr, message_len);
-						strcat(res_buffer, "\r\n");
-						send(client_fd, res_buffer, strlen(res_buffer), 0);
-						printf("STATUS: Sent a response\n");
-					}
-				}
-			}
+			free_resp_node((struct RESPNode *)res_data);
+			free(res_body);
 		}
+
+		free_resp_array_node(resp_request);
 	}
 
 	close(client_fd);
