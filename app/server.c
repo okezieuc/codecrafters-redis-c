@@ -155,8 +155,18 @@ int main(int argc, char *argv[])
 	// Disable output buffering
 	setbuf(stdout, NULL);
 
-	int server_fd, client_fd, client_addr_len;
+	int server_fd, client_fd, client_addr_len, port = 6379;
 	struct sockaddr_in client_addr;
+
+	// handle command line arguments
+	for (int i = 0; i < argc; i++)
+	{
+		if (strcmp(argv[i], "--port") == 0)
+		{
+			port = atoi(argv[i + 1]);
+			i++;
+		}
+	}
 
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd == -1)
@@ -176,19 +186,9 @@ int main(int argc, char *argv[])
 
 	struct sockaddr_in serv_addr = {
 		.sin_family = AF_INET,
-		.sin_port = htons(6379),
+		.sin_port = htons(port),
 		.sin_addr = {htonl(INADDR_ANY)},
 	};
-
-	// handle command line arguments
-	for (int i = 0; i < argc; i++)
-	{
-		if (strcmp(argv[i], "--port") == 0)
-		{
-			serv_addr.sin_port = htons(atoi(argv[i + 1]));
-			i++;
-		}
-	}
 
 	if (bind(server_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0)
 	{
