@@ -150,7 +150,7 @@ void *handle_req(void *arg)
 	pthread_exit(NULL);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	// Disable output buffering
 	setbuf(stdout, NULL);
@@ -179,6 +179,16 @@ int main()
 		.sin_port = htons(6379),
 		.sin_addr = {htonl(INADDR_ANY)},
 	};
+
+	// handle command line arguments
+	for (int i = 0; i < argc; i++)
+	{
+		if (strcmp(argv[i], "--port") == 0)
+		{
+			serv_addr.sin_port = htons(atoi(argv[i + 1]));
+			i++;
+		}
+	}
 
 	if (bind(server_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) != 0)
 	{
