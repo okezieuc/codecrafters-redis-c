@@ -15,6 +15,8 @@
 struct ServerMetadata
 {
 	int is_replica;
+	char replication_id[64];
+	int replication_offset;
 };
 
 struct ConnArgs
@@ -41,7 +43,7 @@ void *handle_req(void *arg)
 	int len, client_fd = req_conn_args->client_fd;
 	struct Dict *store = req_conn_args->store;
 	struct ServerMetadata server_meta_data = req_conn_args->server_meta_data;
-	
+
 	char req_buffer[1024], res_buffer[1024], *ptr;
 
 	// receive messge from client
@@ -161,7 +163,14 @@ void *handle_req(void *arg)
 
 				if (server_meta_data.is_replica == 0)
 				{
-					res_node = create_resp_bulk_string_node("role:master");
+					char server_info[256];
+					strcpy(server_info, "role:master\n");
+					strcat(server_info, "master_replid:");
+					strcat(server_info, server_meta_data.replication_id);
+					strcat(server_info, "\nmaster_repl_offset:");
+					sprintf(server_info + strlen(server_info), "%d", server_meta_data.replication_offset);
+
+					res_node = create_resp_bulk_string_node(server_info);
 				}
 				else
 				{
@@ -192,6 +201,7 @@ int main(int argc, char *argv[])
 
 	int server_fd, client_fd, client_addr_len, port = 6379;
 	struct sockaddr_in client_addr;
+
 	struct ServerMetadata server_meta_data;
 	server_meta_data.is_replica = 0;
 
@@ -208,6 +218,13 @@ int main(int argc, char *argv[])
 			server_meta_data.is_replica = 1;
 			i += 2;
 		}
+	}
+
+	// set replication ID and offset if server is a master node
+	if (server_meta_data.is_replica == 0)
+	{
+		strcpy(server_meta_data.replication_id, "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb");
+		server_meta_data.replication_offset = 0;
 	}
 
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
