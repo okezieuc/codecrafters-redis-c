@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <netdb.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
@@ -11,12 +12,15 @@
 #include "utils.h"
 #include "resp/resp.h"
 #include "dict.h"
+#include "replication/handshake.h"
 
 struct ServerMetadata
 {
 	int is_replica;
 	char replication_id[64];
 	int replication_offset;
+	char master_host[32];
+	int master_port;
 };
 
 struct ConnArgs
@@ -216,6 +220,10 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[i], "--replicaof") == 0)
 		{
 			server_meta_data.is_replica = 1;
+
+			strcpy(server_meta_data.master_host, argv[i + 1]);
+			server_meta_data.master_port = atoi(argv[i + 2]);
+
 			i += 2;
 		}
 	}
@@ -253,6 +261,12 @@ int main(int argc, char *argv[])
 	{
 		printf("Bind failed: %s \n", strerror(errno));
 		return 1;
+	}
+
+	// replica handshake to master. this only runs in replicas
+	if (server_meta_data.is_replica)
+	{
+		send_handshake(server_meta_data.master_host, server_meta_data.master_port);
 	}
 
 	int connection_backlog = 5;
