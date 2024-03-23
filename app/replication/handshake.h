@@ -18,11 +18,6 @@ int send_handshake(struct ServerMetadata server_meta_data)
         return -1;
     }
 
-    client_addr.sin_family = AF_INET;
-    client_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    client_addr.sin_port = 0;
-    bind(client_fd, (struct sockaddr *)&client_addr, sizeof(client_addr));
-
     master_node_addr.sin_family = AF_INET;
     master_node_addr.sin_port = htons(server_meta_data.master_port);
     struct hostent *mh;
@@ -45,5 +40,50 @@ int send_handshake(struct ServerMetadata server_meta_data)
         return -1;
     }
 
+    // send REPLCONF with listening-port to master
+    msg_array = create_resp_array_node(3);
+    msg_array->item_ptrs[0] = (struct RESPNode *)create_resp_bulk_string_node("REPLCONF");
+    msg_array->item_ptrs[1] = (struct RESPNode *)create_resp_bulk_string_node("listening-port");
+    sprintf(buffer, "%d", server_meta_data.port);
+    msg_array->item_ptrs[2] = (struct RESPNode *)create_resp_bulk_string_node(buffer);
+
+    ptr = encode_resp_array(msg_array);
+    send(client_fd, ptr, strlen(ptr), 0);
+    free_resp_array_node(msg_array);
+    free(ptr);
+
+    recv(client_fd, buffer, 1024, 0);
+    ptr = buffer;
+    res_ss_data = parse_resp_simple_string(&ptr);
+
+    if (strcmp(res_ss_data->data, "OK") != 0)
+    {
+        printf("Received non-OK response to REPLCONF. Received: %s\n", res_ss_data->data);
+        return -1;
+    }
+    free(res_ss_data);
+
+    // send REPLCONF with capa to master
+    msg_array = create_resp_array_node(3);
+    msg_array->item_ptrs[0] = (struct RESPNode *)create_resp_bulk_string_node("REPLCONF");
+    msg_array->item_ptrs[1] = (struct RESPNode *)create_resp_bulk_string_node("capa");
+    msg_array->item_ptrs[2] = (struct RESPNode *)create_resp_bulk_string_node("psync2");
+
+    ptr = encode_resp_array(msg_array);
+    send(client_fd, ptr, strlen(ptr), 0);
+    free_resp_array_node(msg_array);
+    free(ptr);
+
+    recv(client_fd, buffer, 1024, 0);
+    ptr = buffer;
+    res_ss_data = parse_resp_simple_string(&ptr);
+
+    if (strcmp(res_ss_data->data, "OK") != 0)
+    {
+        printf("Received non-OK response to REPLCONF. Received: %s\n", res_ss_data->data);
+        return -1;
+    }
+    free(res_ss_data);
+}
 
 #endif
