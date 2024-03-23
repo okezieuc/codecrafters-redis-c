@@ -13,15 +13,7 @@
 #include "resp/resp.h"
 #include "dict.h"
 #include "replication/handshake.h"
-
-struct ServerMetadata
-{
-	int is_replica;
-	char replication_id[64];
-	int replication_offset;
-	char master_host[32];
-	int master_port;
-};
+#include "server.h"
 
 struct ConnArgs
 {
@@ -203,18 +195,19 @@ int main(int argc, char *argv[])
 	// Disable output buffering
 	setbuf(stdout, NULL);
 
-	int server_fd, client_fd, client_addr_len, port = 6379;
+	int server_fd, client_fd, client_addr_len;
 	struct sockaddr_in client_addr;
 
 	struct ServerMetadata server_meta_data;
 	server_meta_data.is_replica = 0;
+	server_meta_data.port = 6379;
 
 	// handle command line arguments
 	for (int i = 0; i < argc; i++)
 	{
 		if (strcmp(argv[i], "--port") == 0)
 		{
-			port = atoi(argv[i + 1]);
+			server_meta_data.port = atoi(argv[i + 1]);
 			i++;
 		}
 		else if (strcmp(argv[i], "--replicaof") == 0)
@@ -253,7 +246,7 @@ int main(int argc, char *argv[])
 
 	struct sockaddr_in serv_addr = {
 		.sin_family = AF_INET,
-		.sin_port = htons(port),
+		.sin_port = htons(server_meta_data.port),
 		.sin_addr = {htonl(INADDR_ANY)},
 	};
 
@@ -266,7 +259,7 @@ int main(int argc, char *argv[])
 	// replica handshake to master. this only runs in replicas
 	if (server_meta_data.is_replica)
 	{
-		send_handshake(server_meta_data.master_host, server_meta_data.master_port);
+		send_handshake(server_meta_data);
 	}
 
 	int connection_backlog = 5;
