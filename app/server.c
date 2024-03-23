@@ -35,11 +35,13 @@ void *handle_req(void *);
 void *handle_req(void *arg)
 {
 	pthread_detach(pthread_self());
+	struct ConnArgs *req_conn_args = arg;
 
 	// store a copy of the client_fd in this context
-	int len, client_fd = (int)(((struct ConnArgs *)arg)->client_fd);
-	struct Dict *store = (struct Dict *)(((struct ConnArgs *)arg)->store);
-	struct ServerMetadata server_meta_data = ((struct ConnArgs *)arg)->server_meta_data;
+	int len, client_fd = req_conn_args->client_fd;
+	struct Dict *store = req_conn_args->store;
+	struct ServerMetadata server_meta_data = req_conn_args->server_meta_data;
+	
 	char req_buffer[1024], res_buffer[1024], *ptr;
 
 	// receive messge from client
