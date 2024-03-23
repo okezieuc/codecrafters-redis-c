@@ -142,6 +142,22 @@ void *handle_req(void *arg)
 			free(res_body);
 		}
 
+		else if (strcmp(command->data, "info") == 0)
+		{
+			struct RESPBulkStringNode *arg1 = (struct RESPBulkStringNode *)resp_request->item_ptrs[1];
+
+			if (strcmp(arg1->data, "replication") == 0)
+			{
+				struct RESPBulkStringNode *res_node = create_resp_bulk_string_node("role:master");
+				char *res_body = encode_resp_bulk_string(res_node);
+
+				send(client_fd, res_body, strlen(res_body), 0);
+
+				free(res_node);
+				free(res_body);
+			}
+		}
+
 		free_resp_array_node(resp_request);
 	}
 
