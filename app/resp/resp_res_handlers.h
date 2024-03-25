@@ -29,7 +29,7 @@ int send_bulk_string(int client_fd, char *str)
     struct RESPBulkStringNode *res_data_node;
     char *res_body;
 
-    res_data_node = create_resp_bulk_string_node(str);
+    res_data_node = (str == NULL) ? NULL : create_resp_bulk_string_node(str);
     res_body = encode_resp_bulk_string(res_data_node);
 
     send(client_fd, res_body, strlen(res_body), 0);

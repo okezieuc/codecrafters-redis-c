@@ -65,25 +65,13 @@ void *handle_req(void *arg)
 		if (strcmp(command->data, "ping") == 0)
 		{
 			printf("STATUS: Received PING\n");
-
-			struct RESPSimpleStringNode *res_data = create_resp_simple_string_node("PONG");
-			char *res_body = encode_resp_node((struct RESPNode *)res_data);
-			send(client_fd, res_body, strlen(res_body), 0);
-
-			free_resp_node((struct RESPNode *)res_data);
-			free(res_body);
+			send_simple_string(client_fd, "PONG");
 		}
 
 		else if (strcmp(command->data, "echo") == 0)
 		{
 			printf("STATUS: Received PING\n");
-
-			struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
-			char *res_body = encode_resp_node((struct RESPNode *)res_data);
-			send(client_fd, res_body, strlen(res_body), 0);
-
-			free_resp_node((struct RESPNode *)res_data);
-			free(res_body);
+			send_bulk_string(client_fd, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
 		}
 
 		else if (strcmp(command->data, "set") == 0)
@@ -115,12 +103,7 @@ void *handle_req(void *arg)
 
 			set_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data, &new_entry);
 
-			struct RESPSimpleStringNode *res_data = create_resp_simple_string_node("OK");
-			char *res_body = encode_resp_simple_string(res_data);
-			send(client_fd, res_body, strlen(res_body), 0);
-
-			free(res_data);
-			free(res_body);
+			send_simple_string(client_fd, "OK");
 		}
 
 		else if (strcmp(command->data, "get") == 0)
@@ -128,7 +111,6 @@ void *handle_req(void *arg)
 			printf("STATUS: Received GET\n");
 
 			struct RedisEntry *saved_entry = get_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
-			char *res_body;
 			long int now = get_current_time();
 
 			// check if the entry is expired
@@ -136,17 +118,12 @@ void *handle_req(void *arg)
 			{
 				// the key is expired
 				del_dict_item(store, ((struct RESPBulkStringNode *)resp_request->item_ptrs[1])->data);
-				res_body = encode_resp_bulk_string(NULL);
+				send_bulk_string(client_fd, NULL);
 			}
 			else
 			{
-				struct RESPBulkStringNode *res_data = create_resp_bulk_string_node(saved_entry->value);
-				res_body = encode_resp_bulk_string(res_data);
-				free(res_data);
+				send_bulk_string(client_fd, saved_entry->value);
 			}
-
-			send(client_fd, res_body, strlen(res_body), 0);
-			free(res_body);
 		}
 
 		else if (strcmp(command->data, "info") == 0)
