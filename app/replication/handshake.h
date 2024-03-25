@@ -84,6 +84,18 @@ int send_handshake(struct ServerMetadata server_meta_data)
         return -1;
     }
     free(res_ss_data);
+
+    // send PSYNC  with replication ID and offset to master
+    msg_array = create_resp_array_node(3);
+    msg_array->item_ptrs[0] = (struct RESPNode *)create_resp_bulk_string_node("PSYNC");
+    msg_array->item_ptrs[1] = (struct RESPNode *)create_resp_bulk_string_node(server_meta_data.master_replication_id);
+    sprintf(buffer, "%d", server_meta_data.master_offset);
+    msg_array->item_ptrs[2] = (struct RESPNode *)create_resp_bulk_string_node(buffer);
+
+    ptr = encode_resp_array(msg_array);
+    send(client_fd, ptr, strlen(ptr), 0);
+    free_resp_array_node(msg_array);
+    free(ptr);
 }
 
 #endif

@@ -9,6 +9,8 @@ struct ServerMetadata
     char master_host[32];
     int master_port;
     int port;
+    char master_replication_id[64];
+    int master_offset;
 };
 
 #endif

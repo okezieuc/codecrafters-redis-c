@@ -205,6 +205,8 @@ int main(int argc, char *argv[])
 
 			strcpy(server_meta_data.master_host, argv[i + 1]);
 			server_meta_data.master_port = atoi(argv[i + 2]);
+			strcpy(server_meta_data.master_replication_id, "?");
+			server_meta_data.master_offset = -1;
 
 			i += 2;
 		}
