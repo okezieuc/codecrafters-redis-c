@@ -5,6 +5,7 @@
 #include "types/array.h"
 #include "types/bulk_string.h"
 #include "types/simple_string.h"
+#include "resp_res_handlers.h"
 
 // this RESP parser accepts an RESP-formatted request string
 // and parses the contents of that string into a more useful format.

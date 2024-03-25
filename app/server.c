@@ -155,7 +155,6 @@ void *handle_req(void *arg)
 
 			if (strcmp(arg1->data, "replication") == 0)
 			{
-				struct RESPBulkStringNode *res_node;
 
 				if (server_meta_data.is_replica == 0)
 				{
@@ -166,25 +165,17 @@ void *handle_req(void *arg)
 					strcat(server_info, "\nmaster_repl_offset:");
 					sprintf(server_info + strlen(server_info), "%d", server_meta_data.replication_offset);
 
-					res_node = create_resp_bulk_string_node(server_info);
+					send_bulk_string(client_fd, server_info);
 				}
 				else
 				{
-					res_node = create_resp_bulk_string_node("role:slave");
+					send_bulk_string(client_fd, "role:slave");
 				}
-
-				char *res_body = encode_resp_bulk_string(res_node);
-
-				send(client_fd, res_body, strlen(res_body), 0);
-
-				free(res_node);
-				free(res_body);
 			}
 		}
 
 		else if (strcmp(command->data, "replconf") == 0)
 		{
-			struct RESPSimpleStringNode *res_node;
 			struct RESPBulkStringNode *arg1 = (struct RESPBulkStringNode *)resp_request->item_ptrs[1];
 
 			if (strcmp(arg1->data, "listening-port") == 0)
@@ -192,21 +183,15 @@ void *handle_req(void *arg)
 				struct RESPBulkStringNode *arg2 = (struct RESPBulkStringNode *)resp_request->item_ptrs[2];
 
 				printf("Replica listens on port %s\n", arg2->data);
-				res_node = create_resp_simple_string_node("OK");
+				send_simple_string(client_fd, "OK");
 			}
 			else if (strcmp(arg1->data, "capa") == 0)
 			{
 				struct RESPBulkStringNode *arg2 = (struct RESPBulkStringNode *)resp_request->item_ptrs[2];
 
 				printf("Replica has capability %s\n", arg2->data);
-				res_node = create_resp_simple_string_node("OK");
+				send_simple_string(client_fd, "OK");
 			}
-
-			char *res_body = encode_resp_simple_string(res_node);
-			send(client_fd, res_body, strlen(res_body), 0);
-
-			free(res_node);
-			free(res_body);
 		}
 
 		free_resp_array_node(resp_request);
