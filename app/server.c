@@ -30,7 +30,7 @@ void *handle_req(void *arg)
 	struct Dict *store = req_conn_args->store;
 	struct ServerMetadata server_meta_data = req_conn_args->server_meta_data;
 
-	char req_buffer[1024], res_buffer[1024], *ptr;
+	char req_buffer[1024], buffer[1024], *ptr;
 
 	// receive messge from client
 	// handle multiple requests from single client
@@ -159,6 +159,15 @@ void *handle_req(void *arg)
 				printf("Replica has capability %s\n", arg2->data);
 				send_simple_string(client_fd, "OK");
 			}
+		}
+
+		else if (strcmp(command->data, "psync") == 0)
+		{
+			strcpy(buffer, "FULLRESYNC ");
+			strcat(buffer, server_meta_data.replication_id);
+			sprintf(buffer + strlen(buffer), " %d", server_meta_data.replication_offset);
+
+			send_simple_string(client_fd, buffer);
 		}
 
 		free_resp_array_node(resp_request);
