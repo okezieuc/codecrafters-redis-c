@@ -1,14 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netdb.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <ctype.h>
+#include "global_imports.h"
 #include "utils.h"
 #include "resp/resp.h"
 #include "dict.h"
@@ -270,7 +260,7 @@ int main(int argc, char *argv[])
 	pthread_t t_ids[1024];
 
 	// create a new thread for every client
-	while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len)) != -1)
+	while ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_len)) != -1)
 	{
 		printf("Client connected\n");
 		struct ConnArgs args = {server_meta_data, client_fd, store};
