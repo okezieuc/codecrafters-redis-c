@@ -97,4 +97,6 @@ int send_handshake(struct ServerMetadata server_meta_data)
     send(client_fd, ptr, strlen(ptr), 0);
     free_resp_array_node(msg_array);
     free(ptr);
+
+    return 0;
 }

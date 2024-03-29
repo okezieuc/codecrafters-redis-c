@@ -24,6 +24,8 @@ char *encode_resp_node(struct RESPNode *node)
         return encode_resp_array((struct RESPArrayNode *)node);
         break;
     }
+
+    return NULL;
 }
 
 /**
@@ -43,6 +45,8 @@ struct RESPNode *parse_resp_node(char **resp_string)
         return (struct RESPNode *)parse_resp_array(resp_string);
         break;
     }
+
+    return NULL;
 }
 
 int free_resp_node(struct RESPNode *node)
