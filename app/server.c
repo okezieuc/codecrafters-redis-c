@@ -168,6 +168,29 @@ void *handle_req(void *arg)
 			sprintf(buffer + strlen(buffer), " %d", server_meta_data.replication_offset);
 
 			send_simple_string(client_fd, buffer);
+
+			char empty_rdb_hex[] = "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2";
+
+			// prepare the body
+			unsigned char *empty_rdb_bin;
+			size_t rdb_bin_len = hexs2bin(empty_rdb_hex, &empty_rdb_bin);
+
+			// prepare the prefix
+			char *rbd_prefix = malloc(32);
+			sprintf(rbd_prefix, "$%zu\r\n", rdb_bin_len);
+
+			// get the length of the response for send
+			size_t rbd_file_res_len = rdb_bin_len + strlen(rbd_prefix);
+
+			char *rbd_file_res = malloc(rbd_file_res_len);
+			strcpy(rbd_file_res, rbd_prefix);
+			memcpy(rbd_file_res + strlen(rbd_file_res), empty_rdb_bin, rdb_bin_len);
+
+			send(client_fd, rbd_file_res, rbd_file_res_len, 0);
+
+			free(empty_rdb_bin);
+			free(rbd_prefix);
+			free(rbd_file_res);
 		}
 
 		free_resp_array_node(resp_request);
